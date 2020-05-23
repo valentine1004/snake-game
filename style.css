@@ -1,0 +1,22 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+
+.game_wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game{
+    border: 1px solid green;
+    width: 800px;
+    height: 600px;
+}
+
+.snake{
+    height: 20px;
+    width: 20px;
+    background-color: blueviolet;
+}
