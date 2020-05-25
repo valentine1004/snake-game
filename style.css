@@ -4,6 +4,7 @@ body{
 }
 
 .game_wrapper{
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -13,10 +14,19 @@ body{
     border: 1px solid green;
     width: 800px;
     height: 600px;
+    position: relative;
 }
 
 .snake{
     height: 20px;
     width: 20px;
-    background-color: blueviolet;
+    position: absolute;
+    z-index: 1000;
+    background-color: #adadad;
+}
+
+.food{
+    height: 20px;
+    width: 20px;
+    position: absolute;
 }
