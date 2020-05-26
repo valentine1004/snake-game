@@ -1,24 +1,20 @@
-var snake = document.getElementById("snake");
+import { getRandomInt, deleteElement, addElement } from "./utils.js";
+import { snakeSize, screenWidth, screenHeight } from "./consts.js";
+import { directions, foodTypes } from "./enums.js";
+
+var snakeCells = document.getElementsByClassName("snake");
 var game = document.getElementById("game");
 
-const snakeSize = 20;
-const screenWidth = 800;
-const screenHeight = 600;
-const directions = {
-  RIGHT: "RIGHT",
-  BOTTOM: "BOTTOM",
-  LEFT: "LEFT",
-  TOP: "TOP"
-};
+let snakeCellCoords = [[100, 0], [80, 0], [60, 0], [40, 0], [20, 0], [0, 0]];
+let lastCell = [];
+let timeSpeed = 300;
+let basicFoods = [];
+let foods = [];
+let score = 0;
+let currentDirection = directions.RIGHT;
 
-const foodTypes = {
-  APPLE: "APPLE",
-  PEAR: "PEAR",
-  BANANA: "BANANA",
-  BOMB: "BOMB",
-  DOUBLE: "DOUBLE",
-  SPEEDUP: "SPEEDUP",
-  SLOWUP: "SLOWUP"
+for (let i = 0; i < snakeCells.length; i++) {
+  snakeCells[i].style.transform = `translate(${snakeCellCoords[i][0]}px, ${snakeCellCoords[i][1]}px)`
 }
 
 const foodsInfo = {
@@ -40,17 +36,10 @@ const foodsInfo = {
   [foodTypes.SPEEDUP]: {
     color: "#ff1919"
   },
-  [foodTypes.SLOWUP]: {
+  [foodTypes.SLOWDOWN]: {
     color: "#47b9ff"
   }
 }
-
-let basicFoods = [];
-let foods = [];
-let score = 0;
-var coordX = 0;
-var coordY = 0;
-var currentDirection = directions.RIGHT;
 
 window.addEventListener("keydown", function (event) {
   if (event.defaultPrevented) {
@@ -82,151 +71,166 @@ window.addEventListener("keydown", function (event) {
 }, true);
 
 function snakeMove() {
+  let firstCell = snakeCellCoords[0];
+  let [X, Y] = firstCell;
+
+  let [, ...snakeTeil] = snakeCellCoords;
+  snakeTeil = snakeTeil.map(el => el.toString());
+
   if (currentDirection > 3) currentDirection = 0;
   if (directions[currentDirection] === directions.RIGHT) {
-    coordX += snakeSize;
-    if (coordX > (screenWidth - snakeSize)) {
+    X += snakeSize;
+    snakeCellCoords.unshift([X, Y]);
+    lastCell = snakeCellCoords.pop();
+    if (X > (screenWidth - snakeSize) || snakeTeil.includes([X, Y].toString())) {
       alert(`Game over, your score: ${score}`);
       return;
     }
   }
 
   if (directions[currentDirection] === directions.BOTTOM) {
-    if (coordY === screenHeight - snakeSize) {
+    if (Y === screenHeight - snakeSize || snakeTeil.includes([X, Y].toString())) {
       alert(`Game over, your score: ${score}`);
       return;
     }
-    coordY += snakeSize;
+    Y += snakeSize;
+    snakeCellCoords.unshift([X, Y]);
+    lastCell = snakeCellCoords.pop();
   }
 
   if (directions[currentDirection] === directions.LEFT) {
-    if (coordX === 0) {
+    if (X === 0 || snakeTeil.includes([X, Y].toString())) {
       alert(`Game over, your score: ${score}`);
       return;
     }
-    coordX -= snakeSize;
+    X -= snakeSize;
+    snakeCellCoords.unshift([X, Y]);
+    lastCell = snakeCellCoords.pop();
   }
 
   if (directions[currentDirection] === directions.TOP) {
-    coordY -= snakeSize;
-    if (coordY < 0) {
+    Y -= snakeSize;
+    snakeCellCoords.unshift([X, Y]);
+    lastCell = snakeCellCoords.pop();
+    if (Y < 0 || snakeTeil.includes([X, Y].toString())) {
       alert(`Game over, your score: ${score}`);
       return;
     }
-
   }
-  snake.style.transform = `translate(${coordX}px, ${coordY}px)`;
+
+  for (let i = 0; i < snakeCells.length; i++) {
+    snakeCells[i].style.transform = `translate(${snakeCellCoords[i][0]}px, ${snakeCellCoords[i][1]}px)`
+  }
+
   if (basicFoods.length !== 0) {
-    if (coordX === basicFoods[0].X && coordY === basicFoods[0].Y) {
+    let firstCell = snakeCellCoords[0];
+    let [X, Y] = firstCell;
+    if (X === basicFoods[0].X && Y === basicFoods[0].Y) {
       score += 5;
+      snakeCellCoords = [...snakeCellCoords, lastCell];
+      addElement("snake", game, lastCell);
       console.log('score', score);
       basicFoods.length = 0;
-      deleteElement("basicFood");
+      deleteElement("basicFood", game);
       setTimeout(setBasicFood, 0);
     }
   }
 
   if (foods.length !== 0) {
-    if (coordX === foods[0].X && coordY === foods[0].Y) {
-      if(foods[0].type === foodTypes.PEAR){
+    let firstCell = snakeCellCoords[0];
+    let [X, Y] = firstCell;
+    if (X === foods[0].X && Y === foods[0].Y) {
+      if (foods[0].type === foodTypes.PEAR) {
         score += 10;
+        snakeCellCoords = [...snakeCellCoords, lastCell];
+        addElement("snake", game, lastCell);
       }
-      if(foods[0].type === foodTypes.BANANA){
+      if (foods[0].type === foodTypes.BANANA) {
         score += 50;
+        snakeCellCoords = [...snakeCellCoords, lastCell];
+        addElement("snake", game, lastCell);
       }
-      if(foods[0].type === foodTypes.BOMB){
+      if (foods[0].type === foodTypes.BOMB) {
         alert(`Game over, your score: ${score}`);
         return;
       }
-      if(foods[0].type === foodTypes.SPEEDUP){
-        // score += 50;
+      if (foods[0].type === foodTypes.SPEEDUP) {
+        timeSpeed /= 2;
       }
-      if(foods[0].type === foodTypes.SLOWUP){
-        // score += 50;
+      if (foods[0].type === foodTypes.SLOWDOWN) {
+        timeSpeed *= 2;
       }
-      if(foods[0].type === foodTypes.DOUBLE){
+      if (foods[0].type === foodTypes.DOUBLE) {
         score *= 2;
       }
       console.log('score', score);
       foods.length = 0;
-      deleteElement("food");
-      setTimeout(setOtherFood, 10000);
+      deleteElement("food", game);
     }
   }
 
-  setTimeout(snakeMove, 300);
+  setTimeout(snakeMove, timeSpeed);
 }
 
 function setBasicFood() {
-  let coordX = getRandomInt(0, screenWidth);
-  let coordY = getRandomInt(0, screenHeight);
+  let coordX = getRandomInt(screenWidth, snakeSize);
+  let coordY = getRandomInt(screenHeight, snakeSize);
   addFood(foodTypes.APPLE, coordX, coordY);
 }
 
-function setOtherFood(){
-  if(foods.length !== 0){
-    deleteElement("food"); 
+function setOtherFood() {
+  if (foods.length !== 0) {
+    foods.length = 0;
+    deleteElement("food", game);
   }
-  let coordX = getRandomInt(0, screenWidth);
-  let coordY = getRandomInt(0, screenHeight);
+  let coordX = getRandomInt(screenWidth, snakeSize);
+  let coordY = getRandomInt(screenHeight, snakeSize);
   addFood(getRandomFood(), coordX, coordY);
   setTimeout(setOtherFood, 10000);
 }
 
-function getRandomInt(min, max) {
-  var div = snakeSize;
-  min /= div;
-  max /= div;
-  return (Math.floor(Math.random() * max)) * div;
-}
-
-function getRandomFood(){
+function getRandomFood() {
   let random = Math.random();
-  if(random > 0.98 || random <= 0.02){
-    return foodTypes.SPEEDUP;
+  if (random > 0.98 || random <= 0.02) {
+    return foodTypes.DOUBLE;
   }
-  if((random <= 0.98 && random > 0.88) || (random <= 0.12 && random > 0.02)){
+  if ((random <= 0.98 && random > 0.88) || (random <= 0.12 && random > 0.02)) {
     let localRandom = Math.random() >= 0.5;
-    if(localRandom){
+    if (localRandom) {
       return foodTypes.BOMB;
-    }else{
+    } else {
       return foodTypes.BANANA;
     }
   }
-  if(random > 0.32 && random <= 0.68){
+  if (random > 0.32 && random <= 0.68) {
     return foodTypes.PEAR;
   }
-  if((random > 0.68 && random <= 0.88) || (random > 0.12 && random <= 0.32)){
+  if ((random > 0.68 && random <= 0.88) || (random > 0.12 && random <= 0.32)) {
     let localRandom = Math.random() >= 0.5;
-    if(localRandom){
+    if (localRandom) {
       return foodTypes.SPEEDUP;
-    }else{
-      return foodTypes.SLOWUP;
+    } else {
+      return foodTypes.SLOWDOWN;
     }
   }
 }
 
 function addFood(foodType, coordX, coordY) {
-  var newElement = document.createElement("div");
-  newElement.classList.add("food");
-  newElement.style.background = foodsInfo[foodType].color;
-  newElement.style.transform = `translate(${coordX}px, ${coordY}px)`;
-  if(foodType === foodTypes.APPLE){
-    newElement.setAttribute('id', 'basicFood');
+  var newFood = document.createElement("div");
+  newFood.classList.add("food");
+  newFood.style.background = foodsInfo[foodType].color;
+  newFood.style.transform = `translate(${coordX}px, ${coordY}px)`;
+  if (foodType === foodTypes.APPLE) {
+    newFood.setAttribute('id', 'basicFood');
     basicFoods.push({ X: coordX, Y: coordY });
-  }else{
-    newElement.setAttribute('id', 'food');
+  } else {
+    newFood.setAttribute('id', 'food');
     foods.push({ X: coordX, Y: coordY, type: foodType });
   }
-  game.appendChild(newElement);
+  game.appendChild(newFood);
 }
 
-function deleteElement(id){
-  var elem = document.getElementById(id);
-  game.removeChild(elem);
-}
-
-setTimeout(snakeMove, 300);
+setTimeout(snakeMove, timeSpeed);
 setTimeout(setBasicFood, 0);
 setTimeout(setOtherFood, 10000);
 
