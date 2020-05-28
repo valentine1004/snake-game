@@ -1,3 +1,3 @@
-export const snakeSize = 20;
-export const screenWidth = 800;
+export const snakeSize = 30;
+export const screenWidth = 810;
 export const screenHeight = 600;

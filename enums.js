@@ -12,5 +12,5 @@ export const foodTypes = {
     BOMB: "BOMB",
     DOUBLE: "DOUBLE",
     SPEEDUP: "SPEEDUP",
-    SLOWUP: "SLOWUP"
+    SLOWDOWN: "SLOWDOWN"
 }

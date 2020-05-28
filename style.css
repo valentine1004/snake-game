@@ -12,21 +12,52 @@ body{
 
 .game{
     border: 1px solid green;
-    width: 800px;
+    width: 810px;
     height: 600px;
     position: relative;
 }
 
 .snake{
-    height: 20px;
-    width: 20px;
+    height: 30px;
+    width: 30px;
     position: absolute;
     z-index: 1000;
     background-color: #adadad;
 }
 
 .food{
-    height: 20px;
-    width: 20px;
+    height: 30px;
+    width: 30px;
     position: absolute;
+    background-position:center;
+	background-repeat:no-repeat;
+	background-size:cover;
+}
+
+.apple{
+    background-image: url("./resources/apple.png");
+}
+
+.banana{
+    background-image: url("./resources/banana.png");
+}
+
+.pear{
+    background-image: url("./resources/pear.png");
+}
+
+.bomb{
+    background-image: url("./resources/bomb.png");
+}
+
+.double{
+    background-image: url("./resources/double.png");
+}
+
+.speedup{
+    background-image: url("./resources/speedup.png");
+}
+
+.slowdown{
+    background-image: url("./resources/slowdown.png");
 }

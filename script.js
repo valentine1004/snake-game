@@ -1,67 +1,47 @@
-import { getRandomInt, deleteElement, addElement } from "./utils.js";
+import { getRandomInt, deleteElement, addElement, getRandomFood } from "./utils.js";
 import { snakeSize, screenWidth, screenHeight } from "./consts.js";
 import { directions, foodTypes } from "./enums.js";
 
 var snakeCells = document.getElementsByClassName("snake");
 var game = document.getElementById("game");
 
-let snakeCellCoords = [[100, 0], [80, 0], [60, 0], [40, 0], [20, 0], [0, 0]];
+let snakeCellCoords = [[150, 0], [120, 0], [90, 0], [60, 0], [30, 0], [0, 0]];
 let lastCell = [];
 let timeSpeed = 300;
 let basicFoods = [];
 let foods = [];
 let score = 0;
 let currentDirection = directions.RIGHT;
+let directionChanged = false;
 
 for (let i = 0; i < snakeCells.length; i++) {
   snakeCells[i].style.transform = `translate(${snakeCellCoords[i][0]}px, ${snakeCellCoords[i][1]}px)`
-}
-
-const foodsInfo = {
-  [foodTypes.APPLE]: {
-    color: "#60c955"
-  },
-  [foodTypes.PEAR]: {
-    color: "#ffb963"
-  },
-  [foodTypes.BANANA]: {
-    color: "#fffd70"
-  },
-  [foodTypes.BOMB]: {
-    color: "#000000"
-  },
-  [foodTypes.DOUBLE]: {
-    color: "#aa21ff"
-  },
-  [foodTypes.SPEEDUP]: {
-    color: "#ff1919"
-  },
-  [foodTypes.SLOWDOWN]: {
-    color: "#47b9ff"
-  }
 }
 
 window.addEventListener("keydown", function (event) {
   if (event.defaultPrevented) {
     return;
   }
-
   switch (event.key) {
     case "ArrowDown":
-      if (currentDirection === directions.TOP) return;
+      if (currentDirection === directions.TOP || directionChanged) break;
       currentDirection = directions.BOTTOM;
+      directionChanged = true;
       break;
     case "ArrowUp":
-      if (currentDirection === directions.BOTTOM) return;
+      if (currentDirection === directions.BOTTOM || directionChanged) break;
       currentDirection = directions.TOP;
+      directionChanged = true;
       break;
     case "ArrowLeft":
-      if (currentDirection === directions.RIGHT) return;
+      if (currentDirection === directions.RIGHT || directionChanged) break;
       currentDirection = directions.LEFT;
+      directionChanged = true;
       break;
     case "ArrowRight":
-      if (currentDirection === directions.LEFT) return;
+      if (currentDirection === directions.LEFT || directionChanged) break;
       currentDirection = directions.RIGHT;
+      directionChanged = true;
       break;
     default:
       return;
@@ -121,7 +101,7 @@ function snakeMove() {
   for (let i = 0; i < snakeCells.length; i++) {
     snakeCells[i].style.transform = `translate(${snakeCellCoords[i][0]}px, ${snakeCellCoords[i][1]}px)`
   }
-
+  directionChanged = false;
   if (basicFoods.length !== 0) {
     let firstCell = snakeCellCoords[0];
     let [X, Y] = firstCell;
@@ -185,40 +165,15 @@ function setOtherFood() {
   }
   let coordX = getRandomInt(screenWidth, snakeSize);
   let coordY = getRandomInt(screenHeight, snakeSize);
-  addFood(getRandomFood(), coordX, coordY);
+  let randomFood = getRandomFood(foodTypes);
+  addFood(randomFood, coordX, coordY);
   setTimeout(setOtherFood, 10000);
-}
-
-function getRandomFood() {
-  let random = Math.random();
-  if (random > 0.98 || random <= 0.02) {
-    return foodTypes.DOUBLE;
-  }
-  if ((random <= 0.98 && random > 0.88) || (random <= 0.12 && random > 0.02)) {
-    let localRandom = Math.random() >= 0.5;
-    if (localRandom) {
-      return foodTypes.BOMB;
-    } else {
-      return foodTypes.BANANA;
-    }
-  }
-  if (random > 0.32 && random <= 0.68) {
-    return foodTypes.PEAR;
-  }
-  if ((random > 0.68 && random <= 0.88) || (random > 0.12 && random <= 0.32)) {
-    let localRandom = Math.random() >= 0.5;
-    if (localRandom) {
-      return foodTypes.SPEEDUP;
-    } else {
-      return foodTypes.SLOWDOWN;
-    }
-  }
 }
 
 function addFood(foodType, coordX, coordY) {
   var newFood = document.createElement("div");
   newFood.classList.add("food");
-  newFood.style.background = foodsInfo[foodType].color;
+  newFood.classList.add(foodType.toLowerCase());
   newFood.style.transform = `translate(${coordX}px, ${coordY}px)`;
   if (foodType === foodTypes.APPLE) {
     newFood.setAttribute('id', 'basicFood');
