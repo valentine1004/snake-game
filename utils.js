@@ -35,9 +35,21 @@ export function deleteElement(childId, parentElement){
     parentElement.removeChild(elem);
 }
 
-export function addElement(className, parentElement, position){
+export function addElement(className, id, parentElement, position){
     var newElement = document.createElement("div");
     newElement.classList.add(className);
-    newElement.style.transform = `translate(${position[0]}px, ${position[1]}px)`
+    newElement.setAttribute('id', `snake-cell-${id}`);
+    newElement.style.transform = `translate(${position.X}px, ${position.Y}px)`
     parentElement.appendChild(newElement);
+}
+
+export function isCellAvailable(cells, currentCell){
+  let result = true;
+  for(let i = 0; i < cells.length; i++){
+    if(cells[i].X === currentCell.X && cells[i].Y === currentCell.Y){
+      result = false;
+      break;
+    }
+  }
+  return result;
 }
