@@ -6,6 +6,8 @@ var game = document.getElementById("game");
 var snakeCells = document.getElementsByClassName("snake");
 var scoreDom = document.getElementById("score");
 var startGameBtn = document.getElementById("start-game");
+var failSound = new Audio('./resources/soundFail.mp3');
+var eatSound = new Audio('./resources/soundEat.mp3');
 
 let snakeCellCoords = [{ X: 60, Y: 0 }, { X: 30, Y: 0 }, { X: 0, Y: 0 }];
 let lastCell = null;
@@ -78,6 +80,7 @@ function snakeMove() {
     firstCell.X += snakeSize;
 
     if (firstCell.X > (screenWidth - snakeSize)) {
+      failSound.play();
       alert(`Game over, your score: ${score}`);
       stopGame();
       return;
@@ -86,6 +89,7 @@ function snakeMove() {
 
   if (directions[currentDirection] === directions.BOTTOM) {
     if (firstCell.Y === screenHeight - snakeSize) {
+      failSound.play();
       alert(`Game over, your score: ${score}`);
       stopGame();
       return;
@@ -95,6 +99,7 @@ function snakeMove() {
 
   if (directions[currentDirection] === directions.LEFT) {
     if (firstCell.X === 0) {
+      failSound.play();
       alert(`Game over, your score: ${score}`);
       stopGame();
       return;
@@ -105,6 +110,7 @@ function snakeMove() {
   if (directions[currentDirection] === directions.TOP) {
     firstCell.Y -= snakeSize;
     if (firstCell.Y < 0) {
+      failSound.play();
       alert(`Game over, your score: ${score}`);
       stopGame();
       return;
@@ -119,6 +125,7 @@ function snakeMove() {
     let firstCell = { ...snakeCellCoords[0] };
     if (firstCell.X === basicFoods[0].X && firstCell.Y === basicFoods[0].Y) {
       score += 5;
+      eatSound.play();
       scoreDom.innerText = score;
       addElement(["snake"], `snake-cell-${snakeCellCoords.length}`, game, lastCell);
       snakeCellCoords = [...snakeCellCoords, lastCell];
@@ -134,16 +141,19 @@ function snakeMove() {
       if (foods[0].type === foodTypes.PEAR) {
         score += 10;
         scoreDom.innerText = score;
+        eatSound.play();
         addElement(["snake"], `snake-cell-${snakeCellCoords.length}`, game, lastCell);
         snakeCellCoords = [...snakeCellCoords, lastCell];
       }
       if (foods[0].type === foodTypes.BANANA) {
         score += 50;
         scoreDom.innerText = score;
+        eatSound.play();
         addElement(["snake"], `snake-cell-${snakeCellCoords.length}`, game, lastCell);
         snakeCellCoords = [...snakeCellCoords, lastCell];
       }
       if (foods[0].type === foodTypes.BOMB) {
+        failSound.play();
         alert(`Game over, your score: ${score}`);
         stopGame();
         return;
