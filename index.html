@@ -4,19 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Fredoka+One">
     <title>Snake</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="game_wrapper">
-        <div class="game" id="game">
-            <div class="snake" id="snake-cell-0"></div>
-            <div class="snake" id="snake-cell-1"></div>
-            <div class="snake" id="snake-cell-2"></div>
-            <div class="snake" id="snake-cell-3"></div>
-            <div class="snake" id="snake-cell-4"></div>
-            <div class="snake" id="snake-cell-5"></div>
+        <div class="game_wrapper_block">
+            <div class="game" id="game"></div>
+        </div>
+        <div class="game-menu">
+            <div id="control-panel">
+                <p>Score: <span id="score">0</span></p>
+                <p>
+                    <div id="start-game"><span>Start game</span></div>
+                </p>
+            </div>
         </div>
     </div>
     <script type="module" src="script.js"></script>

@@ -1,20 +1,29 @@
 body{
     margin: 0;
     padding: 0;
+    font-family: 'Fredoka One', serif;
 }
 
 .game_wrapper{
     height: 100vh;
     display: flex;
-    justify-content: center;
+     /* justify-content: center;  */
+    /* align-items: center; */
+    background: #F4F2E8;
+}
+
+.game_wrapper_block{
+    min-width: 900px;
+    display: flex;
+    justify-content: center; 
     align-items: center;
 }
 
 .game{
-    border: 1px solid green;
     width: 810px;
     height: 600px;
     position: relative;
+    background-color: #B6D9AA;
 }
 
 .snake{
@@ -22,7 +31,8 @@ body{
     width: 30px;
     position: absolute;
     z-index: 1000;
-    background-color: #adadad;
+    background-color: #7B4339;
+    border-radius: 8px;
 }
 
 .food{
@@ -32,6 +42,30 @@ body{
     background-position:center;
 	background-repeat:no-repeat;
 	background-size:cover;
+}
+
+.game-menu{
+    color: #2F2728;
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    padding-left: 30px;
+}
+
+#control-panel{
+    height: 600px;
+}
+
+#control-panel p{
+    font-size: 30px;
+}
+
+#start-game{
+    color: #fff;
+    border: none;
+    background: #7B4339;
+    cursor: pointer;
+    padding: 20px 30px;
 }
 
 .apple{

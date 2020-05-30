@@ -1,22 +1,31 @@
-import { getRandomInt, deleteElement, addElement, getRandomFood, isCellAvailable } from "./utils.js";
+import { getRandomInt, deleteElement, addElement, getRandomFood, isCellAvailable, translateSnakeCells, deleteAllElements } from "./utils.js";
 import { snakeSize, screenWidth, screenHeight } from "./consts.js";
 import { directions, foodTypes } from "./enums.js";
 
-var snakeCells = document.getElementsByClassName("snake");
 var game = document.getElementById("game");
+var snakeCells = document.getElementsByClassName("snake");
+var scoreDom = document.getElementById("score");
+var startGameBtn = document.getElementById("start-game");
 
-let snakeCellCoords = [{X: 150, Y: 0}, {X: 120, Y: 0}, {X: 90, Y: 0}, {X: 60, Y: 0}, {X: 30, Y: 0}, {X: 0, Y: 0}];
-let lastCell = [];
+let snakeCellCoords = [{ X: 60, Y: 0 }, { X: 30, Y: 0 }, { X: 0, Y: 0 }];
+let lastCell = null;
 let timeSpeed = 300;
 let basicFoods = [];
 let foods = [];
 let score = 0;
 let currentDirection = directions.RIGHT;
 let directionChanged = false;
+let snakeMoveTimeoutId = null;
+let basicFoodTimeoutId = null;
+let otherFoodTimeoutId = null;
 
-for (let i = 0; i < snakeCells.length; i++) {
-  snakeCells[i].style.transform = `translate(${snakeCellCoords[i].X}px, ${snakeCellCoords[i].Y}px)`
+function createInitialSnake(){
+  snakeCellCoords.forEach((el, idx) => {
+    addElement(["snake"], `snake-cell-${idx}`, game, el);
+  })
 }
+
+createInitialSnake();
 
 window.addEventListener("keydown", function (event) {
   if (event.defaultPrevented) {
@@ -51,28 +60,26 @@ window.addEventListener("keydown", function (event) {
 }, true);
 
 function snakeMove() {
-  let firstCell = {...snakeCellCoords[0]};
-
+  let firstCell = { ...snakeCellCoords[0] };
   let [, ...snakeTeil] = snakeCellCoords;
 
-  
-  if(!isCellAvailable(snakeTeil, firstCell)){
+  if (!isCellAvailable(snakeTeil, firstCell)) {
     let breakIndex = snakeTeil.findIndex(el => (el.X === firstCell.X && el.Y === firstCell.Y)) + 1;
-    for(let i = breakIndex; i < snakeCellCoords.length; i++){
+    for (let i = breakIndex; i < snakeCellCoords.length; i++) {
       deleteElement(`snake-cell-${i}`, game);
     }
     snakeCellCoords.splice(breakIndex, snakeCellCoords.length - breakIndex);
     score = Math.round((score / 2) / 10) * 10;
+    scoreDom.innerText = score;
   }
 
   if (currentDirection > 3) currentDirection = 0;
   if (directions[currentDirection] === directions.RIGHT) {
     firstCell.X += snakeSize;
-    snakeCellCoords.unshift(firstCell);
-    lastCell = snakeCellCoords.pop();
 
     if (firstCell.X > (screenWidth - snakeSize)) {
       alert(`Game over, your score: ${score}`);
+      stopGame();
       return;
     }
   }
@@ -80,66 +87,65 @@ function snakeMove() {
   if (directions[currentDirection] === directions.BOTTOM) {
     if (firstCell.Y === screenHeight - snakeSize) {
       alert(`Game over, your score: ${score}`);
+      stopGame();
       return;
     }
     firstCell.Y += snakeSize;
-    snakeCellCoords.unshift(firstCell);
-    lastCell = snakeCellCoords.pop();
   }
 
   if (directions[currentDirection] === directions.LEFT) {
     if (firstCell.X === 0) {
       alert(`Game over, your score: ${score}`);
+      stopGame();
       return;
     }
     firstCell.X -= snakeSize;
-    snakeCellCoords.unshift(firstCell);
-    lastCell = snakeCellCoords.pop();
   }
 
   if (directions[currentDirection] === directions.TOP) {
     firstCell.Y -= snakeSize;
-    snakeCellCoords.unshift(firstCell);
-    lastCell = snakeCellCoords.pop();
     if (firstCell.Y < 0) {
       alert(`Game over, your score: ${score}`);
+      stopGame();
       return;
     }
   }
-
-  for (let i = 0; i < snakeCells.length; i++) {
-    snakeCells[i].style.transform = `translate(${snakeCellCoords[i].X}px, ${snakeCellCoords[i].Y}px)`
-  }
-
+  snakeCellCoords.unshift(firstCell);
+  lastCell = snakeCellCoords.pop();
+  translateSnakeCells(snakeCells, snakeCellCoords);
   directionChanged = false;
+
   if (basicFoods.length !== 0) {
-    let firstCell = {...snakeCellCoords[0]};
+    let firstCell = { ...snakeCellCoords[0] };
     if (firstCell.X === basicFoods[0].X && firstCell.Y === basicFoods[0].Y) {
       score += 5;
-      addElement("snake", snakeCellCoords.length, game, lastCell);
+      scoreDom.innerText = score;
+      addElement(["snake"], `snake-cell-${snakeCellCoords.length}`, game, lastCell);
       snakeCellCoords = [...snakeCellCoords, lastCell];
-      console.log('score', score);
       basicFoods.length = 0;
       deleteElement("basicFood", game);
-      setTimeout(setBasicFood, 0);
+      basicFoodTimeoutId = setTimeout(setBasicFood, 0);
     }
   }
 
   if (foods.length !== 0) {
-    let firstCell = {...snakeCellCoords[0]};
+    let firstCell = { ...snakeCellCoords[0] };
     if (firstCell.X === foods[0].X && firstCell.Y === foods[0].Y) {
       if (foods[0].type === foodTypes.PEAR) {
         score += 10;
-        addElement("snake", snakeCellCoords.length, game, lastCell);
+        scoreDom.innerText = score;
+        addElement(["snake"], `snake-cell-${snakeCellCoords.length}`, game, lastCell);
         snakeCellCoords = [...snakeCellCoords, lastCell];
       }
       if (foods[0].type === foodTypes.BANANA) {
         score += 50;
-        addElement("snake", snakeCellCoords.length, game, lastCell);
+        scoreDom.innerText = score;
+        addElement(["snake"], `snake-cell-${snakeCellCoords.length}`, game, lastCell);
         snakeCellCoords = [...snakeCellCoords, lastCell];
       }
       if (foods[0].type === foodTypes.BOMB) {
         alert(`Game over, your score: ${score}`);
+        stopGame();
         return;
       }
       if (foods[0].type === foodTypes.SPEEDUP) {
@@ -150,14 +156,14 @@ function snakeMove() {
       }
       if (foods[0].type === foodTypes.DOUBLE) {
         score *= 2;
+        scoreDom.innerText = score;
       }
-      console.log('score', score);
       foods.length = 0;
       deleteElement("food", game);
     }
   }
 
-  setTimeout(snakeMove, timeSpeed);
+  snakeMoveTimeoutId = setTimeout(snakeMove, timeSpeed);
 }
 
 function setBasicFood() {
@@ -173,35 +179,51 @@ function setOtherFood() {
   let position = createRandomFoodPosition(screenWidth, screenHeight, snakeSize, snakeCellCoords, basicFoods, foods);
   let randomFood = getRandomFood(foodTypes);
   addFood(randomFood, position);
-  setTimeout(setOtherFood, 10000);
+  otherFoodTimeoutId = setTimeout(setOtherFood, 10000);
 }
 
 function addFood(foodType, position) {
-  var newFood = document.createElement("div");
-  newFood.classList.add("food");
-  newFood.classList.add(foodType.toLowerCase());
-  newFood.style.transform = `translate(${position.X}px, ${position.Y}px)`;
   if (foodType === foodTypes.APPLE) {
-    newFood.setAttribute('id', 'basicFood');
+    addElement(["food", foodType.toLowerCase()], "basicFood", game, position);
     basicFoods.push(position);
   } else {
-    newFood.setAttribute('id', 'food');
+    addElement(["food", foodType.toLowerCase()], "food", game, position);
     foods.push({ ...position, type: foodType });
   }
-  game.appendChild(newFood);
 }
 
-function createRandomFoodPosition(screenWidth, screenHeight, snakeSize, snakeCellCoords, basicFoods, foods){
-   let filledCoords = [...snakeCellCoords, ...basicFoods, ...foods];
-   let randomPosition = {X: getRandomInt(screenWidth, snakeSize), Y: getRandomInt(screenHeight, snakeSize)};
-   let firstSnakeCell = {...snakeCellCoords[0]};
-   while(!isCellAvailable(filledCoords, randomPosition) || (Math.abs(randomPosition.X - firstSnakeCell.X) <= snakeSize && Math.abs(randomPosition.Y - firstSnakeCell.Y) <= snakeSize)){
-      randomPosition = {X: getRandomInt(screenWidth, snakeSize), Y: getRandomInt(screenHeight, snakeSize)};
-   }
-   return randomPosition;
+function createRandomFoodPosition(screenWidth, screenHeight, snakeSize, snakeCellCoords, basicFoods, foods) {
+  let filledCoords = [...snakeCellCoords, ...basicFoods, ...foods];
+  let randomPosition = { X: getRandomInt(screenWidth, snakeSize), Y: getRandomInt(screenHeight, snakeSize) };
+  let firstSnakeCell = { ...snakeCellCoords[0] };
+  while (!isCellAvailable(filledCoords, randomPosition) || (Math.abs(randomPosition.X - firstSnakeCell.X) <= snakeSize && Math.abs(randomPosition.Y - firstSnakeCell.Y) <= snakeSize)) {
+    randomPosition = { X: getRandomInt(screenWidth, snakeSize), Y: getRandomInt(screenHeight, snakeSize) };
+  }
+  return randomPosition;
 }
 
-setTimeout(snakeMove, timeSpeed);
-setTimeout(setBasicFood, 0);
-setTimeout(setOtherFood, 10000);
+startGameBtn.addEventListener("click", function(){
+  stopGame();
+  snakeMoveTimeoutId = setTimeout(snakeMove, timeSpeed);
+  basicFoodTimeoutId = setTimeout(setBasicFood, 0);
+  otherFoodTimeoutId = setTimeout(setOtherFood, 10000);
+})
+
+function stopGame(){
+  clearTimeout(snakeMoveTimeoutId);
+  clearTimeout(basicFoodTimeoutId);
+  clearTimeout(otherFoodTimeoutId);
+  snakeCellCoords = [{ X: 60, Y: 0 }, { X: 30, Y: 0 }, { X: 0, Y: 0 }];
+  lastCell = [];
+  timeSpeed = 300;
+  basicFoods = [];
+  foods = [];
+  score = 0;
+  scoreDom.innerText = score;
+  currentDirection = directions.RIGHT;
+  directionChanged = false;
+  deleteAllElements(game);
+  createInitialSnake();
+}
+
 

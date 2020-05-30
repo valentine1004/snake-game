@@ -35,10 +35,16 @@ export function deleteElement(childId, parentElement){
     parentElement.removeChild(elem);
 }
 
-export function addElement(className, id, parentElement, position){
+export function deleteAllElements(parentElement){
+   parentElement.innerHTML = '';
+}
+
+export function addElement(arrayClasses, id, parentElement, position){
     var newElement = document.createElement("div");
-    newElement.classList.add(className);
-    newElement.setAttribute('id', `snake-cell-${id}`);
+    arrayClasses.forEach(el => {
+      newElement.classList.add(el);
+    })
+    newElement.setAttribute('id', id);
     newElement.style.transform = `translate(${position.X}px, ${position.Y}px)`
     parentElement.appendChild(newElement);
 }
@@ -52,4 +58,10 @@ export function isCellAvailable(cells, currentCell){
     }
   }
   return result;
+}
+
+export function translateSnakeCells(snakeCells, snakeCellCoords){
+  for (let i = 0; i < snakeCells.length; i++) {
+    snakeCells[i].style.transform = `translate(${snakeCellCoords[i].X}px, ${snakeCellCoords[i].Y}px)`
+  }
 }
